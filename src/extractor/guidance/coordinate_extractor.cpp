@@ -130,7 +130,7 @@ util::Coordinate CoordinateExtractor::ExtractRepresentativeCoordinate(
     if (intersection_node == to_node)
     {
         const auto result = ExtractCoordinateAtLength(skipping_inaccuracies_distance, coordinates);
-        BOOST_ASSERT(is_valid_result(result));
+        // BOOST_ASSERT(is_valid_result(result));
         return result;
     }
 
@@ -145,7 +145,7 @@ util::Coordinate CoordinateExtractor::ExtractRepresentativeCoordinate(
     if (turn_edge_data.roundabout || turn_edge_data.circular)
     {
         const auto result = ExtractCoordinateAtLength(skipping_inaccuracies_distance, coordinates);
-        BOOST_ASSERT(is_valid_result(result));
+        // BOOST_ASSERT(is_valid_result(result));
         return result;
     }
 
@@ -173,7 +173,7 @@ util::Coordinate CoordinateExtractor::ExtractRepresentativeCoordinate(
         }
         else
         {
-            BOOST_ASSERT(is_valid_result(coordinates.back()));
+            // BOOST_ASSERT(is_valid_result(coordinates.back()));
             return coordinates.back();
         }
     }
@@ -233,7 +233,7 @@ util::Coordinate CoordinateExtractor::ExtractRepresentativeCoordinate(
     // if we are now left with two, well than we don't have to worry, or the segment is very small
     if (coordinates.size() == 2 || total_distance <= skipping_inaccuracies_distance)
     {
-        BOOST_ASSERT(is_valid_result(coordinates.back()));
+        // BOOST_ASSERT(is_valid_result(coordinates.back()));
         return coordinates.back();
     }
 
