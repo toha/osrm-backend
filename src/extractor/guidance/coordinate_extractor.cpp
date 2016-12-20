@@ -93,23 +93,21 @@ util::Coordinate CoordinateExtractor::ExtractRepresentativeCoordinate(
     const std::uint8_t intersection_lanes,
     std::vector<util::Coordinate> coordinates) const
 {
-    const auto is_valid_result = [&](const util::Coordinate coordinate) {
+    // check if the coordinate is equal to the interseciton coordinate
+    const auto same_as_start = [&](const util::Coordinate coordinate) {
         return util::Coordinate(traversed_in_reverse
                                     ? node_coordinates[to_node]
-                                    : node_coordinates[intersection_node]) != coordinate;
+                                    : node_coordinates[intersection_node]) == coordinate;
     };
     // this is only used for debug purposes in assertions. We don't want warnings about it
-    (void)is_valid_result;
-
-    // the lane count might not always be set. We need to assume a positive number, though. Here we
-    // select the number of lanes to operate on
-    const auto considered_lanes =
-        GetOffsetCorrectionFactor(node_based_graph.GetEdgeData(turn_edge).road_classification) *
-        ((intersection_lanes == 0) ? ASSUMED_LANE_COUNT : intersection_lanes);
+    (void)same_as_start;
 
     // Fallback. These roads are small broken self-loops that shouldn't be in the data at all
     if (intersection_node == to_node)
+    {
+        BOOST_ASSERT(coordinates.size() >= 2);
         return coordinates[1];
+    }
 
     /* if we are looking at a straight line, we don't care where exactly the coordinate
      * is. Simply return the final coordinate. Turn angles/turn vectors are the same no matter which
@@ -118,7 +116,6 @@ util::Coordinate CoordinateExtractor::ExtractRepresentativeCoordinate(
     if (coordinates.size() <= 2)
     {
         // Here we can't check for validity, due to possible dead-ends with repeated coordinates
-        // BOOST_ASSERT(is_valid_result(coordinates.back()));
         return coordinates.back();
     }
 
@@ -163,7 +160,7 @@ util::Coordinate CoordinateExtractor::ExtractRepresentativeCoordinate(
         {
             const auto result =
                 GetCorrectedCoordinate(turn_coordinate, coordinates[1], coordinates.back());
-            BOOST_ASSERT(is_valid_result(result));
+            BOOST_ASSERT(!same_as_start(result));
             return result;
         }
         else
@@ -175,6 +172,12 @@ util::Coordinate CoordinateExtractor::ExtractRepresentativeCoordinate(
 
     const auto first_distance =
         util::coordinate_calculation::haversineDistance(coordinates[0], coordinates[1]);
+
+    // the lane count might not always be set. We need to assume a positive number, though. Here we
+    // select the number of lanes to operate on
+    const auto considered_lanes =
+        GetOffsetCorrectionFactor(node_based_graph.GetEdgeData(turn_edge).road_classification) *
+        ((intersection_lanes == 0) ? ASSUMED_LANE_COUNT : intersection_lanes);
 
     /* if the very first coordinate along the road is reasonably far away from the road, we assume
      * the coordinate to correctly represent the turn. This could probably be improved using
@@ -189,7 +192,7 @@ util::Coordinate CoordinateExtractor::ExtractRepresentativeCoordinate(
 
     if (first_coordinate_is_far_away)
     {
-        BOOST_ASSERT(is_valid_result(coordinates[1]));
+        BOOST_ASSERT(!same_as_start(coordinates[1]));
         return coordinates[1];
     }
 
@@ -245,12 +248,12 @@ util::Coordinate CoordinateExtractor::ExtractRepresentativeCoordinate(
         {
             const auto result =
                 ExtractCoordinateAtLength(skipping_inaccuracies_distance, coordinates);
-            BOOST_ASSERT(is_valid_result(result));
+            BOOST_ASSERT(!same_as_start(result));
             return result;
         }
         else
         {
-            BOOST_ASSERT(is_valid_result(coordinates.back()));
+            BOOST_ASSERT(!same_as_start(coordinates.back()));
             return coordinates.back();
         }
     }
@@ -290,7 +293,7 @@ util::Coordinate CoordinateExtractor::ExtractRepresentativeCoordinate(
     {
         // skip over repeated coordinates
         const auto result = ExtractCoordinateAtLength(5, coordinates, segment_distances);
-        BOOST_ASSERT(is_valid_result(result));
+        BOOST_ASSERT(!same_as_start(result));
         return result;
     }
 
@@ -324,7 +327,7 @@ util::Coordinate CoordinateExtractor::ExtractRepresentativeCoordinate(
                 .second;
         const auto result =
             GetCorrectedCoordinate(turn_coordinate, coord_between_front, coord_between_back);
-        BOOST_ASSERT(is_valid_result(result));
+        BOOST_ASSERT(!same_as_start(result));
         return result;
     }
 
@@ -345,7 +348,7 @@ util::Coordinate CoordinateExtractor::ExtractRepresentativeCoordinate(
         const auto result = GetCorrectedCoordinate(
             turn_coordinate, coordinates[offset_index], coordinates[offset_index + 1]);
 
-        BOOST_ASSERT(is_valid_result(result));
+        BOOST_ASSERT(!same_as_start(result));
         return result;
     }
 
@@ -376,7 +379,7 @@ util::Coordinate CoordinateExtractor::ExtractRepresentativeCoordinate(
         BOOST_ASSERT(coordinates.size() >= 2);
         const auto result =
             GetCorrectedCoordinate(turn_coordinate, coordinates.back(), vector_head);
-        BOOST_ASSERT(is_valid_result(result));
+        BOOST_ASSERT(!same_as_start(result));
         return result;
     }
 
@@ -402,7 +405,7 @@ util::Coordinate CoordinateExtractor::ExtractRepresentativeCoordinate(
             {
                 const auto result = GetCorrectedCoordinate(
                     turn_coordinate, regression_line_trimmed.first, regression_line_trimmed.second);
-                BOOST_ASSERT(is_valid_result(result));
+                BOOST_ASSERT(!same_as_start(result));
                 return result;
             }
         }
@@ -412,7 +415,7 @@ util::Coordinate CoordinateExtractor::ExtractRepresentativeCoordinate(
     // intersection.
     const auto result =
         ExtractCoordinateAtLength(LOOKAHEAD_DISTANCE_WITHOUT_LANES, coordinates, segment_distances);
-    BOOST_ASSERT(is_valid_result(result));
+    BOOST_ASSERT(!same_as_start(result));
     return result;
 }
 
