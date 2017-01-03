@@ -4,6 +4,7 @@
 #include "extractor/guidance/turn_instruction.hpp"
 #include "engine/guidance/post_processing.hpp"
 
+#include <algorithm>
 #include <iterator>
 #include <unordered_set>
 #include <utility>
@@ -27,8 +28,16 @@ std::vector<RouteStep> anticipateLaneChange(std::vector<RouteStep> steps,
 {
     // Lane anticipation works on contiguous ranges of quick steps that have lane information
     const auto is_quick_has_lanes = [&](const RouteStep &step) {
-        const auto is_quick = step.duration < min_duration_needed_for_lane_change;
         const auto has_lanes = step.intersections.front().lanes.lanes_in_turn > 0;
+
+        // The more unused lanes to the left and right of the turn there are, the higher
+        // the chance the user is driving on one of those and has to cross lanes.
+        // Scale threshold for these cases to be adaptive to the situation's complexity.
+        const auto num_irrelevant = step.NumLanesToTheRight() + step.NumLanesToTheLeft();
+        const auto scale = std::max(1, num_irrelevant / 2);
+        const auto threshold = scale * min_duration_needed_for_lane_change;
+
+        const auto is_quick = step.duration < threshold;
         return has_lanes && is_quick;
     };
 
