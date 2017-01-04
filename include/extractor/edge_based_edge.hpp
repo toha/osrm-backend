@@ -22,7 +22,8 @@ struct EdgeBasedEdge
                   const NodeID edge_id,
                   const EdgeWeight weight,
                   const bool forward,
-                  const bool backward);
+                  const bool backward,
+                  const DistanceData & distance_data);
 
     bool operator<(const EdgeBasedEdge &other) const;
 
@@ -32,19 +33,20 @@ struct EdgeBasedEdge
     EdgeWeight weight : 30;
     bool forward : 1;
     bool backward : 1;
+    DistanceData distance_data;
 };
 
 // Impl.
 
 inline EdgeBasedEdge::EdgeBasedEdge()
-    : source(0), target(0), edge_id(0), weight(0), forward(false), backward(false)
+    : source(0), target(0), edge_id(0), weight(0), forward(false), backward(false), distance_data(DistanceData())
 {
 }
 
 template <class EdgeT>
 inline EdgeBasedEdge::EdgeBasedEdge(const EdgeT &other)
     : source(other.source), target(other.target), edge_id(other.data.via),
-      weight(other.data.distance), forward(other.data.forward), backward(other.data.backward)
+      weight(other.data.distance), forward(other.data.forward), backward(other.data.backward), distance_data(other.data.distance_data)
 {
 }
 
@@ -53,9 +55,10 @@ inline EdgeBasedEdge::EdgeBasedEdge(const NodeID source,
                                     const NodeID edge_id,
                                     const EdgeWeight weight,
                                     const bool forward,
-                                    const bool backward)
+                                    const bool backward,
+                                    const DistanceData & distance_data)
     : source(source), target(target), edge_id(edge_id), weight(weight), forward(forward),
-      backward(backward)
+      backward(backward), distance_data(distance_data)
 {
 }
 

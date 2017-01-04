@@ -69,7 +69,7 @@ Status TablePlugin::HandleRequest(const std::shared_ptr<datafacade::BaseDataFaca
     }
 
     api::TableAPI table_api{*facade, params};
-    table_api.MakeResponse(result_table, snapped_phantoms, result);
+    table_api.MakeResponse(result_table, snapped_phantoms, result, params.output_components);
 
     return Status::Ok;
 }

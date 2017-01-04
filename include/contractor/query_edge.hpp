@@ -16,7 +16,7 @@ struct QueryEdge
     NodeID target;
     struct EdgeData
     {
-        EdgeData() : id(0), shortcut(false), weight(0), forward(false), backward(false) {}
+        EdgeData() : id(0), shortcut(false), weight(0), forward(false), backward(false), distance_data(DistanceData()) {}
 
         template <class OtherT> EdgeData(const OtherT &other)
         {
@@ -25,6 +25,7 @@ struct QueryEdge
             id = other.id;
             forward = other.forward;
             backward = other.backward;
+            distance_data = other.distance_data;
         }
         // this ID is either the middle node of the shortcut, or the ID of the edge based node (node
         // based edge) storing the appropriate data. If `shortcut` is set to true, we get the middle
@@ -34,6 +35,7 @@ struct QueryEdge
         int weight : 30;
         bool forward : 1;
         bool backward : 1;
+        DistanceData distance_data;
     } data;
 
     QueryEdge() : source(SPECIAL_NODEID), target(SPECIAL_NODEID) {}
@@ -53,7 +55,8 @@ struct QueryEdge
         return (source == right.source && target == right.target &&
                 data.weight == right.data.weight && data.shortcut == right.data.shortcut &&
                 data.forward == right.data.forward && data.backward == right.data.backward &&
-                data.id == right.data.id);
+                data.id == right.data.id &&
+                data.distance_data == right.data.distance_data);
     }
 };
 }

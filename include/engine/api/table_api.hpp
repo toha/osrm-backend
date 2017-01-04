@@ -28,6 +28,18 @@ namespace engine
 namespace api
 {
 
+inline util::json::Value duration_encoder(const std::pair<EdgeWeight,DistanceData> & entry)
+{
+    if (entry.first == INVALID_EDGE_WEIGHT) return util::json::Value(util::json::Null());
+    return util::json::Value(util::json::Number(entry.first / 10.));
+}
+
+inline util::json::Value distance_encoder(const std::pair<EdgeWeight,DistanceData> & entry)
+{
+    if (entry.second == INVALID_DISTANCE_DATA) return util::json::Value(util::json::Null());
+    return util::json::Value(util::json::Number(entry.second));
+}
+
 class TableAPI final : public BaseAPI
 {
   public:
@@ -36,13 +48,13 @@ class TableAPI final : public BaseAPI
     {
     }
 
-    virtual void MakeResponse(const std::vector<EdgeWeight> &durations,
+    virtual void MakeResponse(const std::vector<std::pair<EdgeWeight,DistanceData>> &entries,
                               const std::vector<PhantomNode> &phantoms,
-                              util::json::Object &response) const
+                              util::json::Object &response,
+                              const std::vector<TableOutputComponent> & output_components) const
     {
         auto number_of_sources = parameters.sources.size();
         auto number_of_destinations = parameters.destinations.size();
-        ;
 
         // symmetric case
         if (parameters.sources.empty())
@@ -65,8 +77,18 @@ class TableAPI final : public BaseAPI
             response.values["destinations"] = MakeWaypoints(phantoms, parameters.destinations);
         }
 
-        response.values["durations"] =
-            MakeTable(durations, number_of_sources, number_of_destinations);
+        bool durationsRequested = output_components.size() == 0 || std::find(output_components.begin(), output_components.end(), DURATION) != output_components.end();
+        bool distancesRequested = output_components.size() > 0 && std::find(output_components.begin(), output_components.end(), DISTANCE) != output_components.end();
+
+        if (durationsRequested)
+        {
+            response.values["durations"] = MakeTable(entries, number_of_sources, number_of_destinations, duration_encoder);
+        }
+        if (distancesRequested)
+        {
+            response.values["distances"] = MakeTable(entries, number_of_sources, number_of_destinations, distance_encoder);
+        }
+
         response.values["code"] = "Ok";
     }
 
@@ -98,9 +120,11 @@ class TableAPI final : public BaseAPI
         return json_waypoints;
     }
 
-    virtual util::json::Array MakeTable(const std::vector<EdgeWeight> &values,
+    template<typename JSON_VALUE_ENCODER>
+    util::json::Array MakeTable(const std::vector<std::pair<EdgeWeight,DistanceData>> &values,
                                         std::size_t number_of_rows,
-                                        std::size_t number_of_columns) const
+                                        std::size_t number_of_columns,
+                                        JSON_VALUE_ENCODER encoder) const
     {
         util::json::Array json_table;
         for (const auto row : util::irange<std::size_t>(0UL, number_of_rows))
@@ -112,13 +136,7 @@ class TableAPI final : public BaseAPI
             std::transform(row_begin_iterator,
                            row_end_iterator,
                            json_row.values.begin(),
-                           [](const EdgeWeight duration) {
-                               if (duration == INVALID_EDGE_WEIGHT)
-                               {
-                                   return util::json::Value(util::json::Null());
-                               }
-                               return util::json::Value(util::json::Number(duration / 10.));
-                           });
+                           encoder);
             json_table.values.push_back(std::move(json_row));
         }
         return json_table;

@@ -53,6 +53,8 @@ struct PhantomNode
                 int reverse_weight,
                 int forward_offset,
                 int reverse_offset,
+                DistanceData forward_distance_data_,
+                DistanceData reverse_distance_data_,
                 unsigned packed_geometry_id_,
                 bool is_tiny_component,
                 unsigned component_id,
@@ -64,6 +66,7 @@ struct PhantomNode
         : forward_segment_id(forward_segment_id), reverse_segment_id(reverse_segment_id),
           name_id(name_id), forward_weight(forward_weight), reverse_weight(reverse_weight),
           forward_offset(forward_offset), reverse_offset(reverse_offset),
+          forward_distance_data{forward_distance_data_}, reverse_distance_data{reverse_distance_data_},
           packed_geometry_id(packed_geometry_id_), component{component_id, is_tiny_component},
           location(std::move(location)), input_location(std::move(input_location)),
           fwd_segment_position(fwd_segment_position), forward_travel_mode(forward_travel_mode),
@@ -76,6 +79,7 @@ struct PhantomNode
           reverse_segment_id{SPECIAL_SEGMENTID, false},
           name_id(std::numeric_limits<unsigned>::max()), forward_weight(INVALID_EDGE_WEIGHT),
           reverse_weight(INVALID_EDGE_WEIGHT), forward_offset(0), reverse_offset(0),
+          forward_distance_data(INVALID_DISTANCE_DATA), reverse_distance_data(INVALID_DISTANCE_DATA),
           packed_geometry_id(SPECIAL_GEOMETRYID), component{INVALID_COMPONENTID, false},
           fwd_segment_position(0), forward_travel_mode(TRAVEL_MODE_INACCESSIBLE),
           backward_travel_mode(TRAVEL_MODE_INACCESSIBLE)
@@ -118,14 +122,17 @@ struct PhantomNode
     explicit PhantomNode(const OtherT &other,
                          int forward_weight_,
                          int forward_offset_,
+                         DistanceData forward_distance_data_,
                          int reverse_weight_,
                          int reverse_offset_,
+                         DistanceData reverse_distance_data_,
                          const util::Coordinate location_,
                          const util::Coordinate input_location_)
         : forward_segment_id{other.forward_segment_id},
           reverse_segment_id{other.reverse_segment_id}, name_id{other.name_id},
           forward_weight{forward_weight_}, reverse_weight{reverse_weight_},
           forward_offset{forward_offset_}, reverse_offset{reverse_offset_},
+          forward_distance_data{forward_distance_data_}, reverse_distance_data{reverse_distance_data_},
           packed_geometry_id{other.packed_geometry_id},
           component{other.component.id, other.component.is_tiny}, location{location_},
           input_location{input_location_}, fwd_segment_position{other.fwd_segment_position},
@@ -141,6 +148,8 @@ struct PhantomNode
     int reverse_weight;
     int forward_offset;
     int reverse_offset;
+    DistanceData forward_distance_data;
+    DistanceData reverse_distance_data;
     unsigned packed_geometry_id;
     struct ComponentType
     {
@@ -158,7 +167,7 @@ struct PhantomNode
     extractor::TravelMode backward_travel_mode;
 };
 
-static_assert(sizeof(PhantomNode) == 56, "PhantomNode has more padding then expected");
+static_assert(sizeof(PhantomNode) == 64, "PhantomNode has more padding then expected");
 
 using PhantomNodePair = std::pair<PhantomNode, PhantomNode>;
 

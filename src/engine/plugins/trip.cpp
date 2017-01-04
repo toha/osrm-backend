@@ -175,7 +175,7 @@ Status TripPlugin::HandleRequest(const std::shared_ptr<datafacade::BaseDataFacad
 
     // compute the duration table of all phantom nodes
     const auto result_table = util::DistTableWrapper<EdgeWeight>(
-        duration_table(*facade, snapped_phantoms, {}, {}), number_of_locations);
+        duration_table.durations(*facade, snapped_phantoms, {}, {}), number_of_locations);
 
     if (result_table.size() == 0)
     {

@@ -38,7 +38,7 @@ class GraphContractor
     {
         ContractorEdgeData()
             : weight(0), id(0), originalEdges(0), shortcut(0), forward(0), backward(0),
-              is_original_via_node_ID(false)
+              is_original_via_node_ID(false), distance_data(DistanceData())
         {
         }
         ContractorEdgeData(unsigned weight,
@@ -46,10 +46,11 @@ class GraphContractor
                            unsigned id,
                            bool shortcut,
                            bool forward,
-                           bool backward)
+                           bool backward,
+                           const DistanceData & distance_data)
             : weight(weight), id(id), originalEdges(std::min((unsigned)1 << 28, original_edges)),
               shortcut(shortcut), forward(forward), backward(backward),
-              is_original_via_node_ID(false)
+              is_original_via_node_ID(false), distance_data(distance_data)
         {
         }
         unsigned weight;
@@ -59,6 +60,7 @@ class GraphContractor
         bool forward : 1;
         bool backward : 1;
         bool is_original_via_node_ID : 1;
+        DistanceData distance_data;
     } data;
 
     struct ContractorHeapData
@@ -169,7 +171,8 @@ class GraphContractor
                                diter->edge_id,
                                false,
                                diter->forward ? true : false,
-                               diter->backward ? true : false);
+                               diter->backward ? true : false,
+                               diter->distance_data);
 
             edges.emplace_back(diter->target,
                                diter->source,
@@ -178,7 +181,8 @@ class GraphContractor
                                diter->edge_id,
                                false,
                                diter->backward ? true : false,
-                               diter->forward ? true : false);
+                               diter->forward ? true : false,
+                               diter->distance_data);
         }
         // clear input vector
         input_edge_list.clear();
@@ -208,23 +212,28 @@ class GraphContractor
             forward_edge.data.id = reverse_edge.data.id = id;
             forward_edge.data.originalEdges = reverse_edge.data.originalEdges = 1;
             forward_edge.data.weight = reverse_edge.data.weight = INVALID_EDGE_WEIGHT;
+            forward_edge.data.distance_data = reverse_edge.data.distance_data = INVALID_DISTANCE_DATA;
             // remove parallel edges
             while (i < edges.size() && edges[i].source == source && edges[i].target == target)
             {
                 if (edges[i].data.forward)
                 {
-                    forward_edge.data.weight =
-                        std::min(edges[i].data.weight, forward_edge.data.weight);
+                    if (edges[i].data.weight < forward_edge.data.weight) {
+                        forward_edge.data.weight = edges[i].data.weight;
+                        forward_edge.data.distance_data = edges[i].data.distance_data;
+                    }
                 }
                 if (edges[i].data.backward)
                 {
-                    reverse_edge.data.weight =
-                        std::min(edges[i].data.weight, reverse_edge.data.weight);
+                    if (edges[i].data.weight < reverse_edge.data.weight) {
+                        reverse_edge.data.weight = edges[i].data.weight;
+                        reverse_edge.data.distance_data = edges[i].data.distance_data;
+                    }
                 }
                 ++i;
             }
             // merge edges (s,t) and (t,s) into bidirectional edge
-            if (forward_edge.data.weight == reverse_edge.data.weight)
+            if (forward_edge.data.weight == reverse_edge.data.weight && forward_edge.data.distance_data == reverse_edge.data.distance_data)
             {
                 if ((int)forward_edge.data.weight != INVALID_EDGE_WEIGHT)
                 {
@@ -648,6 +657,7 @@ class GraphContractor
                     BOOST_ASSERT_MSG(SPECIAL_NODEID != new_edge.source, "Source id invalid");
                     BOOST_ASSERT_MSG(SPECIAL_NODEID != new_edge.target, "Target id invalid");
                     new_edge.data.weight = data.weight;
+                    new_edge.data.distance_data = data.distance_data;
                     new_edge.data.shortcut = data.shortcut;
                     if (!data.is_original_via_node_ID && !orig_node_id_from_new_node_id_map.empty())
                     {
@@ -846,6 +856,7 @@ class GraphContractor
                             // guarantees that source is not connected to another node that is
                             // contracted
                             node_weights[source] = path_weight; // make sure to prune better
+                            DistanceData path_distance_data = in_data.distance_data + out_data.distance_data;
                             inserted_edges.emplace_back(source,
                                                         target,
                                                         path_weight,
@@ -854,7 +865,8 @@ class GraphContractor
                                                         node,
                                                         SHORTCUT_ARC,
                                                         FORWARD_DIRECTION_ENABLED,
-                                                        REVERSE_DIRECTION_DISABLED);
+                                                        REVERSE_DIRECTION_DISABLED,
+                                                        path_distance_data);
 
                             inserted_edges.emplace_back(target,
                                                         source,
@@ -864,7 +876,8 @@ class GraphContractor
                                                         node,
                                                         SHORTCUT_ARC,
                                                         FORWARD_DIRECTION_DISABLED,
-                                                        REVERSE_DIRECTION_ENABLED);
+                                                        REVERSE_DIRECTION_ENABLED,
+                                                        path_distance_data);
                         }
                     }
                     continue;
@@ -910,6 +923,7 @@ class GraphContractor
                     }
                     else
                     {
+                        DistanceData path_distance_data = in_data.distance_data + out_data.distance_data;
                         inserted_edges.emplace_back(source,
                                                     target,
                                                     path_weight,
@@ -917,7 +931,8 @@ class GraphContractor
                                                     node,
                                                     SHORTCUT_ARC,
                                                     FORWARD_DIRECTION_ENABLED,
-                                                    REVERSE_DIRECTION_DISABLED);
+                                                    REVERSE_DIRECTION_DISABLED,
+                                                    path_distance_data);
 
                         inserted_edges.emplace_back(target,
                                                     source,
@@ -926,7 +941,8 @@ class GraphContractor
                                                     node,
                                                     SHORTCUT_ARC,
                                                     FORWARD_DIRECTION_DISABLED,
-                                                    REVERSE_DIRECTION_ENABLED);
+                                                    REVERSE_DIRECTION_ENABLED,
+                                                    path_distance_data);
                     }
                 }
             }
@@ -954,6 +970,10 @@ class GraphContractor
                         continue;
                     }
                     if (inserted_edges[other].data.shortcut != inserted_edges[i].data.shortcut)
+                    {
+                        continue;
+                    }
+                    if (inserted_edges[other].data.distance_data != inserted_edges[i].data.distance_data)
                     {
                         continue;
                     }

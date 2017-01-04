@@ -123,9 +123,9 @@ int Contractor::Run()
 #ifdef WIN32
 #pragma message("Memory consumption on Windows can be higher due to different bit packing")
 #else
-    static_assert(sizeof(extractor::NodeBasedEdge) == 24,
+    static_assert(sizeof(extractor::NodeBasedEdge) == 28,
                   "changing extractor::NodeBasedEdge type has influence on memory consumption!");
-    static_assert(sizeof(extractor::EdgeBasedEdge) == 16,
+    static_assert(sizeof(extractor::EdgeBasedEdge) == 20,
                   "changing EdgeBasedEdge type has influence on memory consumption!");
 #endif
 

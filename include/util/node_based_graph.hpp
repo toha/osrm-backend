@@ -21,7 +21,7 @@ struct NodeBasedEdgeData
         : distance(INVALID_EDGE_WEIGHT), edge_id(SPECIAL_NODEID),
           name_id(std::numeric_limits<unsigned>::max()), reversed(false), roundabout(false),
           circular(false), travel_mode(TRAVEL_MODE_INACCESSIBLE),
-          lane_description_id(INVALID_LANE_DESCRIPTIONID)
+          lane_description_id(INVALID_LANE_DESCRIPTIONID), distance_data(DistanceData())
     {
     }
 
@@ -33,10 +33,11 @@ struct NodeBasedEdgeData
                       bool circular,
                       bool startpoint,
                       extractor::TravelMode travel_mode,
-                      const LaneDescriptionID lane_description_id)
+                      const LaneDescriptionID lane_description_id,
+                      const DistanceData & distance_data)
         : distance(distance), edge_id(edge_id), name_id(name_id), reversed(reversed),
           roundabout(roundabout), circular(circular), startpoint(startpoint),
-          travel_mode(travel_mode), lane_description_id(lane_description_id)
+          travel_mode(travel_mode), lane_description_id(lane_description_id), distance_data(distance_data)
     {
     }
 
@@ -50,6 +51,7 @@ struct NodeBasedEdgeData
     extractor::TravelMode travel_mode : 4;
     LaneDescriptionID lane_description_id;
     extractor::guidance::RoadClassification road_classification;
+    DistanceData distance_data;
 
     bool IsCompatibleTo(const NodeBasedEdgeData &other) const
     {
@@ -88,6 +90,7 @@ NodeBasedDynamicGraphFromEdges(NodeID number_of_nodes,
             output_edge.data.startpoint = input_edge.startpoint;
             output_edge.data.road_classification = input_edge.road_classification;
             output_edge.data.lane_description_id = input_edge.lane_description_id;
+            output_edge.data.distance_data = input_edge.distance_data;
         });
 
     tbb::parallel_sort(edges_list.begin(), edges_list.end());

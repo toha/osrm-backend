@@ -202,6 +202,24 @@ template <class DataFacadeT, class Derived> class BasicRoutingInterface
         return loop_weight;
     }
 
+    inline std::pair<EdgeWeight,DistanceData> GetLoopWeightAndDistance(const DataFacadeT &facade, NodeID node) const
+    {
+        std::pair<EdgeWeight,DistanceData> result = std::make_pair(INVALID_EDGE_WEIGHT, INVALID_DISTANCE_DATA);
+        for (auto edge : facade.GetAdjacentEdgeRange(node))
+        {
+            const auto &data = facade.GetEdgeData(edge);
+            if (data.forward)
+            {
+                const NodeID to = facade.GetTarget(edge);
+                if (to == node && data.weight < result.first)
+                {
+                    result = std::make_pair(data.weight, data.distance_data);
+                }
+            }
+        }
+        return result;
+    }
+
     template <typename RandomIter>
     void UnpackPath(const DataFacadeT &facade,
                     RandomIter packed_path_begin,

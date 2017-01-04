@@ -22,7 +22,7 @@ namespace
 // creates a default edge of unit weight
 inline InputEdge MakeUnitEdge(const NodeID from, const NodeID to)
 {
-    // src, tgt, dist, edge_id, name_id, fwd, bkwd, roundabout, circular, travel_mode
+    // src, tgt, dist, edge_id, name_id, fwd, bkwd, roundabout, circular, travel_mode, distance_data
     return {from,
             to,
             1,
@@ -33,7 +33,8 @@ inline InputEdge MakeUnitEdge(const NodeID from, const NodeID to)
             false,
             true,
             TRAVEL_MODE_INACCESSIBLE,
-            INVALID_LANE_DESCRIPTIONID};
+            INVALID_LANE_DESCRIPTIONID,
+            DistanceData()};
 }
 
 } // namespace

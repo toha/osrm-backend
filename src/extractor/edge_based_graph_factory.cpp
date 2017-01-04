@@ -475,6 +475,7 @@ void EdgeBasedGraphFactory::GenerateEdgeExpandedEdges(
 
                     // the following is the core of the loop.
                     unsigned distance = edge_data1.distance;
+                    DistanceData distance_data = edge_data1.distance_data;
                     if (m_traffic_lights.find(node_at_center_of_intersection) !=
                         m_traffic_lights.end())
                     {
@@ -548,7 +549,8 @@ void EdgeBasedGraphFactory::GenerateEdgeExpandedEdges(
                                                         m_edge_based_edge_list.size(),
                                                         distance,
                                                         true,
-                                                        false);
+                                                        false,
+                                                        distance_data);
                     BOOST_ASSERT(original_edges_counter == m_edge_based_edge_list.size());
 
                     // Here is where we write out the mapping between the edge-expanded edges, and

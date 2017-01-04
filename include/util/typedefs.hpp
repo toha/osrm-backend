@@ -67,6 +67,9 @@ using LaneDescriptionID = std::uint16_t;
 static const LaneDescriptionID INVALID_LANE_DESCRIPTIONID =
     std::numeric_limits<LaneDescriptionID>::max();
 
+using DistanceData = float;
+static const DistanceData INVALID_DISTANCE_DATA = -1;
+
 using BearingClassID = std::uint32_t;
 static const BearingClassID INVALID_BEARING_CLASSID = std::numeric_limits<BearingClassID>::max();
 
