@@ -63,15 +63,15 @@ suffix_list = {
 }
 
 speed_profile = {
-  motorway = 90,
+  motorway = 80,
   motorway_link = 45,
-  trunk = 85,
+  trunk = 80,
   trunk_link = 40,
   primary = 65,
   primary_link = 30,
   secondary = 55,
   secondary_link = 25,
-  tertiary = 40,
+  tertiary = 35,
   tertiary_link = 20,
   unclassified = 25,
   residential = 25,
@@ -156,16 +156,16 @@ smoothness_speeds = {
 -- http://wiki.openstreetmap.org/wiki/Speed_limits
 maxspeed_table_default = {
   urban = 50,
-  rural = 70,
-  trunk = 70,
-  motorway = 90
+  rural = 80,
+  trunk = 80,
+  motorway = 80
 }
 
 -- List only exceptions
 maxspeed_table = {
   ["ch:rural"] = 70,
   ["ch:trunk"] = 70,
-  ["ch:motorway"] = 90,
+  ["ch:motorway"] = 80,
   ["de:living_street"] = 7,
   ["ru:living_street"] = 20,
   ["ru:urban"] = 60,
@@ -176,8 +176,8 @@ maxspeed_table = {
   ["cz:trunk"] = 0,
   ["ro:trunk"] = 70,
   ["cz:motorway"] = 0,
-  ["de:motorway"] = 90,
-  ["ru:motorway"] = 90,
+  ["de:motorway"] = 80,
+  ["ru:motorway"] = 80,
   ["gb:nsl_single"] = (60*1609)/1000,
   ["gb:nsl_dual"] = (70*1609)/1000,
   ["gb:motorway"] = (70*1609)/1000,
@@ -185,8 +185,8 @@ maxspeed_table = {
   ["uk:nsl_dual"] = (70*1609)/1000,
   ["uk:motorway"] = (70*1609)/1000,
   ["nl:rural"] = 70,
-  ["nl:trunk"] = 90,
-  ["none"] = 90
+  ["nl:trunk"] = 80,
+  ["none"] = 80
 }
 
 -- set profile properties
@@ -668,6 +668,46 @@ function handle_classification(way,result,data)
   set_classification(data.highway,result,way)
 end
 
+function parse_maxweight(source)
+  if source == nil then
+    return 0
+  end
+  local n = tonumber(source:match("%d.%d*"))
+  if n == nil then
+    n = 0
+  end
+  return math.abs(n)
+end
+
+function parse_maxheight(source)
+  if source == nil then
+          return 0
+  end
+  local n = tonumber(source:match("%d*"))
+  if n == nil then
+     n = 0
+  end
+  local inch = tonumber(source:match("(%d*)'%d"))
+  local feet = tonumber(source:match("%d*'(%d*)"))
+  if inch == nil then
+     inch = 0
+  end
+  if feet == nil then
+     feet = 0
+  end
+  if (feet + inch) > 0 then
+     if inch > 0 then
+        n = (inch * 3408)/100
+     end
+     if feet > 0 then
+        n = n + (feet*254)/100
+     end
+     n = (math.floor(n)/100)
+  end
+
+  return math.abs(n)
+end
+
 -- main entry point for processsing a way
 function way_function(way, result)
   -- intermediate values used during processing
@@ -692,6 +732,22 @@ function way_function(way, result)
   -- routable. this includes things like status=impassable,
   -- toll=yes and oneway=reversible
   if is_way_blocked(way,result) == false then return end
+
+  -- We don't route over route with maxweight=3.5 or less
+  local maxweight = parse_maxweight(way.tags:Find("maxweight"))
+  if 0 < maxweight then
+     if 3.5 >= maxweight then
+  return
+     end
+  end
+
+  -- We don't route over route with maxheight=4 or less
+  local maxheight = parse_maxheight(way.tags:Find("maxheight"))
+  if 0 < maxheight then
+     if 4 >= maxheight then
+  return
+     end
+  end
 
   -- determine access status by checking our hierarchy of
   -- access tags, e.g: motorcar, motor_vehicle, vehicle
