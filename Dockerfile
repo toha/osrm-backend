@@ -38,7 +38,8 @@ RUN NPROC=$(grep -c ^processor /proc/cpuinfo 2>/dev/null || 1) && \
 
 ADD . /opt/osrm-backend
 
-RUN echo "Building OSRM" && \
+RUN NPROC=$(grep -c ^processor /proc/cpuinfo 2>/dev/null || 1) && \
+    echo "Building OSRM" && \
     cd /opt/osrm-backend && \
     mkdir build && \
     cd build && \
