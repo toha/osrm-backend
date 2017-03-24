@@ -52,6 +52,7 @@ RUN NPROC=$(grep -c ^processor /proc/cpuinfo 2>/dev/null || 1) && \
     strip /usr/local/bin/* && \
     rm /usr/local/lib/libstxxl* /usr/local/lib/libluabind* && \
     cd /opt && \
+    apk update && \
     apk del boost-dev && \
     apk del g++ cmake libc-dev expat-dev zlib-dev bzip2-dev lua5.1-dev git make gcc && \
     apk add boost-filesystem boost-program_options boost-regex boost-iostreams boost-thread libgomp lua5.1 expat && \
