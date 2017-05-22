@@ -7,7 +7,7 @@ RUN mkdir /data
 WORKDIR /data
 RUN wget http://download.geofabrik.de/europe/germany-latest.osm.pbf
 RUN osrm-extract -p /opt/truck.lua /data/germany-latest.osm.pbf
-RUN osrm-contract /data/germany-latest.osrm
+RUN osrm-contract /data/germany-latest.osrm && rm -f /data/germany-latest.osm.pbf
 
 EXPOSE 5000
 
