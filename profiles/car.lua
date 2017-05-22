@@ -63,18 +63,18 @@ suffix_list = {
 }
 
 speed_profile = {
-  motorway = 90,
+  motorway = 130,
   motorway_link = 45,
-  trunk = 85,
+  trunk = 90,
   trunk_link = 40,
-  primary = 65,
-  primary_link = 30,
-  secondary = 55,
+  primary = 40,
+  primary_link = 25,
+  secondary = 30,
   secondary_link = 25,
-  tertiary = 35,
+  tertiary = 25,
   tertiary_link = 20,
-  unclassified = 25,
-  residential = 25,
+  unclassified = 15,
+  residential = 15,
   living_street = 10,
   service = 15,
 --track = 5,
@@ -155,8 +155,8 @@ smoothness_speeds = {
 
 -- http://wiki.openstreetmap.org/wiki/Speed_limits
 maxspeed_table_default = {
-  urban = 50,
-  rural = 90,
+  urban = 30,
+  rural = 70,
   trunk = 110,
   motorway = 130
 }
@@ -213,7 +213,7 @@ local abs = math.abs
 local min = math.min
 local max = math.max
 
-local speed_reduction = 0.8
+local speed_reduction = 0.65
 
 function get_name_suffix_list(vector)
   for index,suffix in ipairs(suffix_list) do
