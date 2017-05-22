@@ -1,0 +1,14 @@
+# You need to build the image from './Dockerfile' first as xtl/osrm-v5:distances
+
+FROM xtl/osrm-v5:distances
+
+RUN mkdir /data
+
+WORKDIR /data
+RUN wget http://download.geofabrik.de/europe/germany-latest.osm.pbf
+RUN osrm-extract -p /opt/truck.lua /data/germany-latest.osm.pbf
+RUN osrm-contract /data/germany-latest.osrm
+
+EXPOSE 5000
+
+CMD ["osrm-routed","--max-viaroute-size", "2500", "--max-table-size", "10000", "/data/germany-latest.osrm"]

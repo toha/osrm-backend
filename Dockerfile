@@ -3,7 +3,6 @@
 FROM alpine:3.4
 
 
-
 # This is passed to cmake for osrm-backend.  All other dependencies are built in
 # release mode.
 ARG BUILD_TYPE=Release
