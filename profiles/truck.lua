@@ -734,20 +734,20 @@ function way_function(way, result)
   if is_way_blocked(way,result) == false then return end
 
   -- We don't route over route with maxweight=3.5 or less
-  local maxweight = parse_maxweight(way.tags:Find("maxweight"))
-  if 0 < maxweight then
-     if 3.5 >= maxweight then
-  return
-     end
-  end
+  -- local maxweight = parse_maxweight(way.tags:Find("maxweight"))
+  -- if 0 < maxweight then
+  --    if 3.5 >= maxweight then
+  -- return
+  --    end
+  -- end
 
   -- We don't route over route with maxheight=4 or less
-  local maxheight = parse_maxheight(way.tags:Find("maxheight"))
-  if 0 < maxheight then
-     if 4 >= maxheight then
-  return
-     end
-  end
+  -- local maxheight = parse_maxheight(way.tags:Find("maxheight"))
+  -- if 0 < maxheight then
+  --    if 4 >= maxheight then
+  -- return
+  --    end
+  -- end
 
   -- determine access status by checking our hierarchy of
   -- access tags, e.g: motorcar, motor_vehicle, vehicle
